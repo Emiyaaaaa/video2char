@@ -5,17 +5,20 @@
 
 from PIL import Image, ImageDraw, ImageFont
 import cv2
-import pygame
 from PIL import Image
 
 height_out = 50
-width_out = 100
-timeF = 300
+width_out = 120
+timeF = 10
+gif_width = 1000
+gif_height = 1000
+font_color = (0, 0, 0)
+background_color = (255, 255, 255)
 
 class ImgText():
     font = ImageFont.truetype("simhei.ttf", 15)
     def __init__(self, text):
-        self.width = 1000
+        self.width = gif_width
         self.text = text
         self.duanluo, self.note_height, self.line_height = self.split_text()
     def get_duanluo(self, text):
@@ -49,23 +52,20 @@ class ImgText():
         total_height = total_lines * line_height
         return allText, total_height, line_height
     def draw_text(self):
-        img = Image.new('RGB', (1000, 1000), (255, 255, 255))
+        img = Image.new('RGB', (gif_width, gif_height), background_color)
         draw = ImageDraw.Draw(img)
         # 左上角开始
         x, y = 0, 0
         for duanluo, line_count in self.duanluo:
-            draw.text((x, y), duanluo, fill=(0, 0, 0), font=ImgText.font)
+            draw.text((x, y), duanluo, fill=font_color, font=ImgText.font)
             y += self.line_height * line_count
         return img
 
 
 class Video2char():
-    def pic2gif(self):
-        im = Image.open("a0.png")
-        images = []
-        images.append(Image.open('a1.png'))
-        images.append(Image.open('a2.png'))
-        im.save('gif.gif', save_all=True, append_images=images, loop=1, duration=1, comment=b"aaabb")
+    def pic2gif(self,images):
+        image = images[0]
+        image.save('result.gif', save_all=True, append_images=images, loop=1, duration=1, comment=b"aaabb")
 
     def get_char(self,r,g,b,alpha=255):
         ascii_char = list(r"@$B%&W%M#*XhkbdpqwmZO0QLCJUYoazcvunxrjft/|()1{}[[-_+~<>i!lI;:,^`'.  ")
@@ -100,13 +100,12 @@ class Video2char():
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 text = self.pic2char(image)
                 img = ImgText(text).draw_text()
-
                 images.append(img)
             c = c + 1
             cv2.waitKey(1)
         vc.release()
-        im = Image.open("result.png")
-        im.save('gif.gif', save_all=True, append_images=images, loop=1, duration=1, comment=b"aaabb")
+        self.pic2gif(images)
+
 
 if __name__=='__main__':
     # ImgText('').draw_text()
