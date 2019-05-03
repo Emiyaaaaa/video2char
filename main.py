@@ -8,9 +8,9 @@ import cv2
 from PIL import Image
 
 height_out = 25
-width_out = 70
-gif_width = 500
-gif_height = 500
+width_out = 80
+gif_height = 800
+gif_width = 1000
 start_time = '00:15'
 end_time = '00:30'
 font_color = (0, 0, 0)
@@ -72,7 +72,6 @@ class Char2pic():
 
 
 class Video2char():
-
     def __init__(self):
         try:
             self.split_video = True
@@ -86,7 +85,6 @@ class Video2char():
                 self.end_sec = 0
         except:
             self.split_video = False
-
 
     def time2sec(self,time):
         min = time.split(':')[0]
@@ -136,7 +134,6 @@ class Video2char():
             rval,frame = vc.read()
         else:
             rval = False
-        print(c,end_frame)
         while rval and c <= end_frame:
             rval,frame = vc.read()
             if(c%timeF==0):#c为第几帧
@@ -146,7 +143,6 @@ class Video2char():
                 images.append(img)
             c = c + 1
             cv2.waitKey(1)
-        print(c)
         vc.release()
         self.pic2gif(images)
 
