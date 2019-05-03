@@ -7,12 +7,12 @@ from PIL import Image, ImageDraw, ImageFont
 import cv2
 from PIL import Image
 
-height_out = 50
-width_out = 120
-gif_width = 1000
-gif_height = 1000
-start_time = '00:00'
-end_time = ''
+height_out = 25
+width_out = 70
+gif_width = 500
+gif_height = 500
+start_time = '00:15'
+end_time = '00:30'
 font_color = (0, 0, 0)
 font_size = 15
 background_color = (255, 255, 255)
@@ -81,7 +81,7 @@ class Video2char():
             else:
                 self.start_sec = 0
             if end_time != '' and end_time != None and end_time != '00:00':
-                self.end_sec = self.time2sec(start_time)
+                self.end_sec = self.time2sec(end_time)
             else:
                 self.end_sec = 0
         except:
@@ -130,12 +130,13 @@ class Video2char():
             if end_frame == 0:
                 end_frame = frame_count
             c = start_frame
-            
+
         images = []
         if vc.isOpened():
             rval,frame = vc.read()
         else:
             rval = False
+        print(c,end_frame)
         while rval and c <= end_frame:
             rval,frame = vc.read()
             if(c%timeF==0):#c为第几帧
