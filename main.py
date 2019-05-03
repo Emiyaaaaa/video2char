@@ -9,18 +9,25 @@ from PIL import Image
 
 height_out = 50
 width_out = 120
-timeF = 10
 gif_width = 1000
 gif_height = 1000
+start_time = '00:00'
+end_time = ''
 font_color = (0, 0, 0)
+font_size = 15
 background_color = (255, 255, 255)
+timeF = 7
+# 可自行修改帧数，但不推荐修改
 
-class ImgText():
-    font = ImageFont.truetype("simhei.ttf", 15)
+class Char2pic():
+
+    font = ImageFont.truetype("simhei.ttf", font_size)
+
     def __init__(self, text):
         self.width = gif_width
         self.text = text
         self.duanluo, self.note_height, self.line_height = self.split_text()
+
     def get_duanluo(self, text):
         txt = Image.new('RGBA', (100, 100), (255, 255, 255, 0))
         draw = ImageDraw.Draw(txt)
@@ -29,7 +36,7 @@ class ImgText():
         line_count = 1
         line_height = 0
         for char in text:
-            width, height = draw.textsize(char, ImgText.font)
+            width, height = draw.textsize(char, self.font)
             sum_width += width
             if sum_width > self.width:
                 line_count += 1
@@ -40,6 +47,7 @@ class ImgText():
         if not duanluo.endswith('\n'):
             duanluo += '\n'
         return duanluo, line_height, line_count
+
     def split_text(self):
         max_line_height, total_lines = 0, 0
         allText = []
@@ -51,18 +59,41 @@ class ImgText():
         line_height = max_line_height
         total_height = total_lines * line_height
         return allText, total_height, line_height
-    def draw_text(self):
+
+    def main(self):
         img = Image.new('RGB', (gif_width, gif_height), background_color)
         draw = ImageDraw.Draw(img)
         # 左上角开始
         x, y = 0, 0
         for duanluo, line_count in self.duanluo:
-            draw.text((x, y), duanluo, fill=font_color, font=ImgText.font)
+            draw.text((x, y), duanluo, fill=font_color, font=self.font)
             y += self.line_height * line_count
         return img
 
 
 class Video2char():
+
+    def __init__(self):
+        try:
+            self.split_video = True
+            if start_time != '' and start_time != None:
+                self.start_sec = self.time2sec(start_time)
+            else:
+                self.start_sec = 0
+            if end_time != '' and end_time != None and end_time != '00:00':
+                self.end_sec = self.time2sec(start_time)
+            else:
+                self.end_sec = 0
+        except:
+            self.split_video = False
+
+
+    def time2sec(self,time):
+        min = time.split(':')[0]
+        sec = time.split(':')[1]
+        all_sec = int(min) * 60 + int(sec)
+        return all_sec
+
     def pic2gif(self,images):
         image = images[0]
         image.save('result.gif', save_all=True, append_images=images, loop=1, duration=1, comment=b"aaabb")
@@ -87,26 +118,37 @@ class Video2char():
 
     def main(self):
         vc = cv2.VideoCapture(r'E:\python\untitled\common2\output.mp4')
-        c = 1
-        images = []
+        frame_count = vc.get(cv2.CAP_PROP_FRAME_COUNT)
+        fps = vc.get(cv2.CAP_PROP_FPS)
 
+        c = 1
+        end_frame = frame_count
+
+        if self.split_video == True:
+            start_frame = fps * self.start_sec
+            end_frame = fps * self.end_sec
+            if end_frame == 0:
+                end_frame = frame_count
+            c = start_frame
+            
+        images = []
         if vc.isOpened():
             rval,frame = vc.read()
         else:
             rval = False
-        while rval:
+        while rval and c <= end_frame:
             rval,frame = vc.read()
-            if(c%timeF==0):
+            if(c%timeF==0):#c为第几帧
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 text = self.pic2char(image)
-                img = ImgText(text).draw_text()
+                img = Char2pic(text).main()
                 images.append(img)
             c = c + 1
             cv2.waitKey(1)
+        print(c)
         vc.release()
         self.pic2gif(images)
 
 
 if __name__=='__main__':
-    # ImgText('').draw_text()
     Video2char().main()
