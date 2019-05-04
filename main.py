@@ -13,9 +13,9 @@ font_size = 10 #字号
 font_color = (0, 0, 0) #字符颜色
 background_color = (255, 255, 255) #背景颜色
 
-gif_width = 300 #输出的 gif 宽，单位：px
+gif_width = 250 #输出的 gif 宽，单位：px
 start_time = '00:08' #开始转换的时间
-end_time = '00:28' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
+end_time = '00:33' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
 str_tailor = (1, 4, 1, 4) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数,默认为(0, 0, 0, 0)
 gif_fps = 10 #可自行修改帧数，但不推荐修改, 默认值为None或10
 
@@ -105,7 +105,7 @@ class Video2char():
 
     def pic2gif(self,images):
         image = images[0]
-        image.save('result.gif', save_all=True, append_images=images, duration=1)
+        image.save('result.gif', save_all=True, append_images=images, duration=self.duration)
 
     def get_char(self,r,g,b,alpha=255):
         ascii_char = list(r"@$B%&W%M#*XhkbdpqwmZO0QLCJUYoazcvunxrjft/|()1{}[[-_+~<>i!lI;:,^`'.  ")
@@ -141,6 +141,7 @@ class Video2char():
         now_gif_fps = gif_fps
         if now_gif_fps == None:
             now_gif_fps = 10
+        self.duration = 1000 / now_gif_fps
         timeF = int(video_fps / now_gif_fps)
         c = 0
         start_frame = 0
@@ -163,7 +164,7 @@ class Video2char():
             if c % timeF == 0 and c <= end_frame and c >= start_frame:#c为第几帧
                 try: #跳过损坏的帧，视频最后几帧可能损坏
                     image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                    print('成功，{}'.format(c))
+                    print('成功，{}'.format( str(int((c-start_frame)/(end_frame-start_frame)*100))+ ' %' ))
                 except:
                     print('第{}帧损坏'.format(c))
                     continue
