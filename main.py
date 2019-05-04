@@ -9,15 +9,15 @@ import math
 
 video_path = r'E:\python\untitled\common2\output.mp4' #视频存放路径
 
-font_size = 16 #字号
-font_color = (255, 255, 255) #字符颜色
-background_color = (0, 0, 0) #背景颜色
+font_size = 10 #字号
+font_color = (0, 0, 0) #字符颜色
+background_color = (255, 255, 255) #背景颜色
 
-gif_width = 640 #输出的 gif 宽，单位：px
-start_time = '00:15' #开始转换的时间
-end_time = '00:16' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
-str_tailor = (1, 3, 1, 3) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数,默认为(0, 0, 0, 0)
-timeF = 7 #可自行修改帧数，但不推荐修改
+gif_width = 300 #输出的 gif 宽，单位：px
+start_time = '00:08' #开始转换的时间
+end_time = '00:28' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
+str_tailor = (1, 4, 1, 4) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数,默认为(0, 0, 0, 0)
+gif_fps = 10 #可自行修改帧数，但不推荐修改, 默认值为None或10
 
 class Char2pic():
 
@@ -105,7 +105,7 @@ class Video2char():
 
     def pic2gif(self,images):
         image = images[0]
-        image.save('result.gif', save_all=True, append_images=images, loop=1, duration=1, comment=b"aaabb")
+        image.save('result.gif', save_all=True, append_images=images, duration=1)
 
     def get_char(self,r,g,b,alpha=255):
         ascii_char = list(r"@$B%&W%M#*XhkbdpqwmZO0QLCJUYoazcvunxrjft/|()1{}[[-_+~<>i!lI;:,^`'.  ")
@@ -137,31 +137,39 @@ class Video2char():
     def main(self):
         vc = cv2.VideoCapture(video_path)
         frame_count = vc.get(cv2.CAP_PROP_FRAME_COUNT)
-        fps = vc.get(cv2.CAP_PROP_FPS)
-
-        c = 1
+        video_fps = vc.get(cv2.CAP_PROP_FPS)
+        now_gif_fps = gif_fps
+        if now_gif_fps == None:
+            now_gif_fps = 10
+        timeF = int(video_fps / now_gif_fps)
+        c = 0
+        start_frame = 0
         end_frame = frame_count
 
         if self.split_video == True:
-            start_frame = fps * self.start_sec
-            end_frame = fps * self.end_sec
+            start_frame = video_fps * self.start_sec
+            end_frame = video_fps * self.end_sec
             if end_frame == 0:
                 end_frame = frame_count
-            c = start_frame
 
         images = []
         if vc.isOpened():
             rval,frame = vc.read()
         else:
             rval = False
-        while rval and c <= end_frame:
-            rval,frame = vc.read()
-            if(c%timeF==0):#c为第几帧
-                image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        while rval:
+            c = c + 1
+            rval, frame = vc.read()
+            if c % timeF == 0 and c <= end_frame and c >= start_frame:#c为第几帧
+                try: #跳过损坏的帧，视频最后几帧可能损坏
+                    image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                    print('成功，{}'.format(c))
+                except:
+                    print('第{}帧损坏'.format(c))
+                    continue
                 text = self.pic2char(image)
                 img = Char2pic(text).main(self.gif_height)
                 images.append(img)
-            c = c + 1
             cv2.waitKey(1)
         vc.release()
         self.pic2gif(images)
