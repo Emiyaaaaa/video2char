@@ -7,16 +7,16 @@ from PIL import Image, ImageDraw, ImageFont
 import cv2
 import math
 
-video_path = r'E:\python\untitled\common2\output.mp4' #视频存放路径
+video_path = r'E:\python\untitled\common2\output2.mp4' #视频存放路径
 
-font_size = 10 #字号
+font_size = 7 #字号
 font_color = (0, 0, 0) #字符颜色
 background_color = (255, 255, 255) #背景颜色
 
-gif_width = 250 #输出的 gif 宽，单位：px
-start_time = '00:08' #开始转换的时间
-end_time = '00:33' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
-str_tailor = (1, 4, 1, 4) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数,默认为(0, 0, 0, 0)
+gif_width = 300 #输出的 gif 宽，单位：px
+start_time = '00:00' #开始转换的时间，暂不支持小时，可用 70:00 来表示 1:10:00
+end_time = '' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
+str_tailor = (0, 0, 0, 0) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数,默认为(0, 0, 0, 0)
 gif_fps = 10 #可自行修改帧数，但不推荐修改, 默认值为None或10
 
 class Char2pic():
@@ -164,7 +164,7 @@ class Video2char():
             if c % timeF == 0 and c <= end_frame and c >= start_frame:#c为第几帧
                 try: #跳过损坏的帧，视频最后几帧可能损坏
                     image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                    print('成功，{}'.format( str(int((c-start_frame)/(end_frame-start_frame)*100))+ ' %' ))
+                    print('成功，{}'.format( str(round((c-start_frame)/(end_frame-start_frame)*100,1))+ ' %' ))
                 except:
                     print('第{}帧损坏'.format(c))
                     continue
