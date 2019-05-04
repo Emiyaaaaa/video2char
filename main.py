@@ -16,7 +16,7 @@ background_color = (0, 0, 0) #背景颜色
 gif_width = 640 #输出的 gif 宽，单位：px
 start_time = '00:15' #开始转换的时间
 end_time = '00:16' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
-str_tailor = (0, 0, 0, 0) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数
+str_tailor = (1, 3, 1, 3) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数,默认为(0, 0, 0, 0)
 timeF = 7 #可自行修改帧数，但不推荐修改
 
 class Char2pic():
@@ -64,7 +64,6 @@ class Char2pic():
     def main(self,gif_height):
         img = Image.new('RGB', (gif_width, gif_height), background_color)
         draw = ImageDraw.Draw(img)
-        # 左上角开始
         x, y = 0, 0
         for duanluo, line_count in self.duanluo:
             draw.text((x, y), duanluo, fill=font_color, font=self.font)
@@ -88,7 +87,6 @@ class Video2char():
             self.end_sec = end_sec
         except:
             self.split_video = False
-
 
         vc = cv2.VideoCapture(video_path)
         frame_width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)
@@ -121,12 +119,19 @@ class Video2char():
     def pic2char(self,image):
         width_out = self.char_width_num
         height_out = self.char_height_num
+        str_tailor_judged = str_tailor
+        if len(str_tailor) != 4:
+            str_tailor_judged = (0, 0, 0, 0)
+        width_out = width_out + str_tailor_judged[1] + str_tailor_judged[3]
+        height_out = height_out + str_tailor_judged[0] + str_tailor_judged[2]
         im = image.resize((width_out, height_out), Image.NEAREST)
         txt = ""
         for i in range(height_out):
-            for j in range(width_out):
-                txt += self.get_char(*im.getpixel((j, i)))
-            txt = txt + '\n'
+            if i >= str_tailor_judged[0] and i < height_out - str_tailor_judged[2]:
+                for j in range(width_out):
+                    if j >= str_tailor_judged[3] and j < width_out - str_tailor_judged[1]:
+                        txt += self.get_char(*im.getpixel((j, i)))
+                txt = txt + '\n'
         return txt
 
     def main(self):
