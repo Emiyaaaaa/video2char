@@ -5,25 +5,26 @@
 
 from PIL import Image, ImageDraw, ImageFont
 import cv2
-from PIL import Image
+import math
 
-height_out = 25
-width_out = 80
-gif_height = 800
-gif_width = 1000
-start_time = '00:15'
-end_time = '00:30'
-font_color = (0, 0, 0)
-font_size = 15
-background_color = (255, 255, 255)
-timeF = 7
-# 可自行修改帧数，但不推荐修改
+video_path = r'E:\python\untitled\common2\output.mp4' #视频存放路径
+
+font_size = 16 #字号
+font_color = (255, 255, 255) #字符颜色
+background_color = (0, 0, 0) #背景颜色
+
+gif_width = 640 #输出的 gif 宽，单位：px
+start_time = '00:15' #开始转换的时间
+end_time = '00:16' #结束转换的时间，相当于裁剪视频，''或None表示不裁剪
+str_tailor = (0, 0, 0, 0) #可裁剪字符画，四个参数为上，右，下，左需裁剪的字符数
+timeF = 7 #可自行修改帧数，但不推荐修改
 
 class Char2pic():
 
     font = ImageFont.truetype("simhei.ttf", font_size)
 
     def __init__(self, text):
+
         self.width = gif_width
         self.text = text
         self.duanluo, self.note_height, self.line_height = self.split_text()
@@ -60,7 +61,7 @@ class Char2pic():
         total_height = total_lines * line_height
         return allText, total_height, line_height
 
-    def main(self):
+    def main(self,gif_height):
         img = Image.new('RGB', (gif_width, gif_height), background_color)
         draw = ImageDraw.Draw(img)
         # 左上角开始
@@ -76,15 +77,27 @@ class Video2char():
         try:
             self.split_video = True
             if start_time != '' and start_time != None:
-                self.start_sec = self.time2sec(start_time)
+                start_sec = self.time2sec(start_time)
             else:
-                self.start_sec = 0
+                start_sec = 0
             if end_time != '' and end_time != None and end_time != '00:00':
-                self.end_sec = self.time2sec(end_time)
+                end_sec = self.time2sec(end_time)
             else:
-                self.end_sec = 0
+                end_sec = 0
+            self.start_sec = start_sec
+            self.end_sec = end_sec
         except:
             self.split_video = False
+
+
+        vc = cv2.VideoCapture(video_path)
+        frame_width = vc.get(cv2.CAP_PROP_FRAME_WIDTH)
+        frame_height = vc.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        en_font_size = math.ceil(font_size / 2)
+        self.char_width_num = int(gif_width / en_font_size)
+        gif_height = gif_width * frame_height / frame_width
+        self.char_height_num = int(gif_height / (font_size + 1))
+        self.gif_height = self.char_height_num * (font_size + 1)
 
     def time2sec(self,time):
         min = time.split(':')[0]
@@ -106,6 +119,8 @@ class Video2char():
         return ascii_char[int(gray/unit)]
 
     def pic2char(self,image):
+        width_out = self.char_width_num
+        height_out = self.char_height_num
         im = image.resize((width_out, height_out), Image.NEAREST)
         txt = ""
         for i in range(height_out):
@@ -115,7 +130,7 @@ class Video2char():
         return txt
 
     def main(self):
-        vc = cv2.VideoCapture(r'E:\python\untitled\common2\output.mp4')
+        vc = cv2.VideoCapture(video_path)
         frame_count = vc.get(cv2.CAP_PROP_FRAME_COUNT)
         fps = vc.get(cv2.CAP_PROP_FPS)
 
@@ -139,7 +154,7 @@ class Video2char():
             if(c%timeF==0):#c为第几帧
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 text = self.pic2char(image)
-                img = Char2pic(text).main()
+                img = Char2pic(text).main(self.gif_height)
                 images.append(img)
             c = c + 1
             cv2.waitKey(1)
