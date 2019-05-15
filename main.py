@@ -69,6 +69,7 @@ class Char2pic():
             draw.text((x, y), duanluo, fill=font_color, font=self.font)
             y += self.line_height * line_count
         return img
+#这个类是网上抄的，显然很累赘，但好在没bug就先不改了
 
 
 class Video2char():
